@@ -32,6 +32,7 @@ def getYearsRange(soup):
     for o in selectTable.findAll("option"):
         possibleYears.append(o["value"])
     unorderedList = list(map(int, possibleYears))
+    unorderedList.remove(unorderedList[0])
     return unorderedList
 
 
@@ -60,17 +61,22 @@ def getPlayersData(url, year, country):
     allData = []
     try:
         if type(tbody) is not None:
-            for porsela in tbody.findAll("td", {"class", "posrela"}):
-                porsela.extract()
-            for k, tr in enumerate(tbody.findAll('tr')):
+            allTrs = tbody.findAll("tr", class_ = ['even', 'odd'])
+            for k, tr in enumerate(allTrs):
                 alltds = tr.findAll('td')
                 aTags = [f'{year}', f'{country}', f'{clubName}']
                 for l, td in enumerate(alltds):
+                    # posCached = []
+                    # porsela = td.find("td", {"class", "posrela"})
+                    # posCached.append(porsela)
+                    # porsela.extract()
                     if l == 0:
                         aTags.append(td["title"])
-                    if l == 1 or l == 2 or l == 4:
-                        aTags.append(td.contents[0])
                     if l == 3:
+                        aTags.append(td.find("a").contents[0])
+                    if l == 5 or l == 8:
+                        aTags.append(td.contents[0])
+                    if l == 6:
                         aTags.append(td.find('img')["title"])
                 allData.append(aTags)
     except Exception as e:
