@@ -60,40 +60,18 @@ def getPlayersData(url, year, country):
     allData = []
     try:
         if type(tbody) is not None:
-
+            for porsela in tbody.findAll("td", {"class", "posrela"}):
+                porsela.extract()
             for k, tr in enumerate(tbody.findAll('tr')):
-                posrela = tr.find("td", {"class", "posrela"})
-                # if type(posrela) is not None:
-                #     posrela.extract()
                 alltds = tr.findAll('td')
                 aTags = [f'{year}', f'{country}', f'{clubName}']
-                flag = [False]
                 for l, td in enumerate(alltds):
                     if l == 0:
                         aTags.append(td["title"])
-                    if l == 5:
-                        if td.has_attr("itemprop"):
-                            # name = 1
-                            aTags.append(td.contents[0])
-                        else:
-                            pTds = posrela.find("table").findAll("td")
-                            for p, pTd in enumerate(pTds):
-                                if p == 1:
-                                    aTags.append(pTd.find("a").contents[0])
-                                    # year =1
-                                    flag[0] = True
-                    if l == 6:
-                        if not flag[0]:
-                            aTags.append(td.contents[0])
-                        else:
-                            aTags.append(alltds[l - 1].contents[0])
-                    if l == 7:
-                        if not flag[0]:
-                            aTags.append(td.find('img')["title"])
-                        else:
-                            aTags.append(alltds[l - 1].find('img')["title"])
-                    if l == 8:
+                    if l == 1 or l == 2 or l == 4:
                         aTags.append(td.contents[0])
+                    if l == 3:
+                        aTags.append(td.find('img')["title"])
                 allData.append(aTags)
     except Exception as e:
         allData.append(
