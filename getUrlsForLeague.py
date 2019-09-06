@@ -7,13 +7,14 @@ import time
 from bs4 import BeautifulSoup
 
 currentSeason = 2019
+currencySign = "â‚¬Â"
 queryKey = "plus/?saison_id="
 firstPossibleSeason = 1888
 rootUrl = 'https://www.transfermarkt.com'
 
 
 def writeOutputToCsv(fileName, data):
-    with open(fileName, "a") as my_csv:
+    with open(fileName, "a", encoding="utf-8") as my_csv:
         csvWriter = csv.writer(my_csv, delimiter=',')
         csvWriter.writerows(data)
 
@@ -22,7 +23,10 @@ def getRootData(url):
     data = requests.get(url, headers={
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/61.0.3163.100 Safari/537.36'})
-    return BeautifulSoup(data.content, "html.parser", from_encoding="windows-1250")
+    soup = BeautifulSoup(data.content, "html.parser", from_encoding="windows-1250")
+    soup.encode("windows-1250")
+    return soup
+    # return BeautifulSoup(data.content, "html.parser")
 
 
 # actually it gets all possible years. no need to set a year param!
@@ -34,6 +38,22 @@ def getYearsRange(soup):
     unorderedList = list(map(int, possibleYears))
     unorderedList.remove(unorderedList[0])
     return unorderedList
+
+def normalizePrice(price):
+    if ' Mill.' in price:
+        price = price.split(" Mill.", 1)[0]
+        price = price.replace(",", ".")
+        return float(price) * 1000
+    elif' Th.' in price:
+        price = price.split(" Th.", 1)[0]
+        price = price.replace(",", ".")
+        return float(price)
+    elif ' Bill.' in price:
+        price = price.split(" Bill.", 1)[0]
+        price = price.replace(",", ".")
+        return float(price) * 1000000
+    else:
+        return price
 
 
 def getClubsHrefs(soup):
@@ -74,8 +94,10 @@ def getPlayersData(url, year, country):
                         aTags.append(td["title"])
                     if l == 3:
                         aTags.append(td.find("a").contents[0])
-                    if l == 5 or l == 8:
+                    if l == 5:
                         aTags.append(td.contents[0])
+                    if l == 8:
+                        aTags.append(normalizePrice(td.contents[0]))
                     if l == 6:
                         aTags.append(td.find('img')["title"])
                 allData.append(aTags)
